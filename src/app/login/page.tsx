@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase/config';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,7 +15,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Direct fetch to Supabase Auth - bypass client library entirely
       const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
         method: 'POST',
         headers: {
@@ -30,27 +27,29 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error_description || data.msg || 'Login failed');
+        setError(data.error_description || data.msg || 'Invalid email or password');
         return;
       }
 
-      // Store the session tokens
-      if (data.access_token) {
-        // Set cookies for the server-side middleware
-        document.cookie = `sb-access-token=${data.access_token}; path=/; max-age=${data.expires_in}; SameSite=Lax`;
-        document.cookie = `sb-refresh-token=${data.refresh_token}; path=/; max-age=604800; SameSite=Lax`;
+      // Store tokens in cookies that the server middleware can read
+      const ref = SUPABASE_URL.match(/\/\/(.*?)\.supabase/)?.[1] ?? 'app';
+      const cookieName = `sb-${ref}-auth-token`;
+      const session = JSON.stringify({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: Math.floor(Date.now() / 1000) + data.expires_in,
+        token_type: data.token_type,
+        user: data.user,
+      });
 
-        // Also initialize the Supabase client with the session
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        await supabase.auth.setSession({
-          access_token: data.access_token,
-          refresh_token: data.refresh_token,
-        });
-      }
+      document.cookie = `${cookieName}=${encodeURIComponent(session)}; path=/; max-age=${data.expires_in}; SameSite=Lax`;
 
-      router.push('/');
-      router.refresh();
+      // Also store in localStorage for the Supabase client
+      const storageKey = `sb-${ref}-auth-token`;
+      localStorage.setItem(storageKey, session);
+
+      // Hard redirect to force server-side session pickup
+      window.location.href = '/';
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(`Error: ${msg}`);
