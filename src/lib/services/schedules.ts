@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient as createClient } from '@/lib/supabase/admin';
 import type { MaintenanceSchedule } from '@/types/database';
 import type { VehicleScheduleDetail } from '@/types/domain';
 
 export async function getSchedules(): Promise<MaintenanceSchedule[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('maintenance_schedules')
     .select('*')
@@ -15,7 +15,7 @@ export async function getSchedules(): Promise<MaintenanceSchedule[]> {
 }
 
 export async function getSchedule(id: string): Promise<MaintenanceSchedule | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('maintenance_schedules')
     .select('*')
@@ -30,7 +30,7 @@ export async function getSchedule(id: string): Promise<MaintenanceSchedule | nul
 }
 
 export async function getVehicleSchedules(vehicleId: string): Promise<VehicleScheduleDetail[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('vehicle_maintenance_schedules')
     .select('*, schedule:maintenance_schedules(*), assigned_part:parts!vehicle_maintenance_schedules_assigned_part_id_fkey(id, part_number, name)')

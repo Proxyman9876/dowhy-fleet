@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient as createClient } from '@/lib/supabase/admin';
 import type { InventoryTransaction } from '@/types/database';
 import type { PartWithInventory } from '@/types/domain';
 
 export async function getPart(id: string): Promise<PartWithInventory | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('parts')
     .select('*, inventory:parts_inventory(*)')
@@ -25,7 +25,7 @@ export async function getPart(id: string): Promise<PartWithInventory | null> {
 }
 
 export async function getInventoryTransactions(partId: string): Promise<InventoryTransaction[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('inventory_transactions')
     .select('*')
@@ -38,7 +38,7 @@ export async function getInventoryTransactions(partId: string): Promise<Inventor
 }
 
 export async function getLowStockParts(): Promise<PartWithInventory[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('parts')
     .select('*, inventory:parts_inventory(*)')

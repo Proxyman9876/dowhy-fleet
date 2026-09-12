@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient as createClient } from '@/lib/supabase/admin';
 import { partCreateSchema, partUpdateSchema, inventoryAdjustSchema } from '@/lib/validators/parts';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -12,7 +12,7 @@ export async function createPart(formData: FormData) {
     unit_cost: raw.unit_cost ? Number(raw.unit_cost) : null,
   });
 
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data: part, error } = await supabase
     .from('parts')
     .insert(parsed)
@@ -47,7 +47,7 @@ export async function updatePart(id: string, formData: FormData) {
     unit_cost: raw.unit_cost ? Number(raw.unit_cost) : null,
   });
 
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase.from('parts').update(parsed).eq('id', id);
   if (error) return { error: error.message };
 
@@ -57,7 +57,7 @@ export async function updatePart(id: string, formData: FormData) {
 }
 
 export async function adjustInventory(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
 

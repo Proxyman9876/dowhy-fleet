@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient as createClient } from '@/lib/supabase/admin';
 import type { Vehicle } from '@/types/database';
 
 export async function getVehicles(filters?: {
   status?: string;
   search?: string;
 }): Promise<Vehicle[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   let query = supabase
     .from('vehicles')
     .select('*')
@@ -29,7 +29,7 @@ export async function getVehicles(filters?: {
 }
 
 export async function getVehicle(id: string): Promise<Vehicle | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('vehicles')
     .select('*')
@@ -45,7 +45,7 @@ export async function getVehicle(id: string): Promise<Vehicle | null> {
 }
 
 export async function getVehicleByQrCode(qrCodeId: string): Promise<Vehicle | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('vehicles')
     .select('*')

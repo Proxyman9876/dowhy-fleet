@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient as createClient } from '@/lib/supabase/admin';
 import type { MaintenanceRecordDetail } from '@/types/domain';
 
 export async function getMaintenanceRecords(filters?: {
   vehicleId?: string;
   limit?: number;
 }): Promise<MaintenanceRecordDetail[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   let query = supabase
     .from('maintenance_records')
     .select(`

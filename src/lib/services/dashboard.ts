@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient as createClient } from '@/lib/supabase/admin';
 
 export interface DashboardStats {
   totalVehicles: number;
@@ -9,7 +9,7 @@ export interface DashboardStats {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const [vehiclesRes, overdueRes, dueSoonRes, partsRes] = await Promise.all([
     supabase
@@ -57,7 +57,7 @@ export interface OverdueItem {
 }
 
 export async function getOverdueItems(): Promise<OverdueItem[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('vehicle_maintenance_schedules')
     .select(`

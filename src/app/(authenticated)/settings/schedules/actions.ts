@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient as createClient } from '@/lib/supabase/admin';
 import { maintenanceScheduleSchema, vehicleScheduleAssignSchema } from '@/lib/validators/maintenance';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -16,7 +16,7 @@ export async function createSchedule(formData: FormData) {
     due_soon_pct: raw.due_soon_pct ? Number(raw.due_soon_pct) : 10,
   });
 
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase.from('maintenance_schedules').insert(parsed);
   if (error) return { error: error.message };
 
@@ -33,7 +33,7 @@ export async function assignScheduleToVehicle(formData: FormData) {
       : null,
   });
 
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase
     .from('vehicle_maintenance_schedules')
     .upsert(parsed, { onConflict: 'vehicle_id,schedule_id' });
@@ -45,7 +45,7 @@ export async function assignScheduleToVehicle(formData: FormData) {
 }
 
 export async function deleteSchedule(id: string) {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase
     .from('maintenance_schedules')
     .update({ is_active: false })

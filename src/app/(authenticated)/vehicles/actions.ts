@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { vehicleCreateSchema, vehicleUpdateSchema, mileageUpdateSchema } from '@/lib/validators/vehicle';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -20,7 +20,7 @@ export async function createVehicle(formData: FormData) {
     major_repairs: raw.major_repairs || null,
   });
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { error } = await supabase.from('vehicles').insert(parsed);
 
   if (error) {
@@ -49,7 +49,7 @@ export async function updateVehicle(id: string, formData: FormData) {
     major_repairs: raw.major_repairs || null,
   });
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { error } = await supabase
     .from('vehicles')
     .update(parsed)
@@ -69,7 +69,7 @@ export async function updateMileage(formData: FormData) {
     hours: formData.get('hours') ? Number(formData.get('hours')) : null,
   });
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { error } = await supabase.rpc('update_vehicle_mileage', {
     p_vehicle_id: parsed.vehicle_id,
     p_mileage: parsed.mileage,
@@ -84,7 +84,7 @@ export async function updateMileage(formData: FormData) {
 }
 
 export async function deleteVehicle(id: string) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { error } = await supabase
     .from('vehicles')
     .update({ is_deleted: true })

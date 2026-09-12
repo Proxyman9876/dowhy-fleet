@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient as createClient } from '@/lib/supabase/admin';
 import type { PartWithInventory } from '@/types/domain';
 
 export async function getPartsWithInventory(): Promise<PartWithInventory[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('parts')
     .select('*, inventory:parts_inventory(*)')
