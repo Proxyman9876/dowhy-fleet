@@ -1,13 +1,8 @@
 import { z } from 'zod';
 import { VEHICLE_STATUSES } from '@/types/enums';
 
-const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
-
 export const vehicleCreateSchema = z.object({
-  vin: z
-    .string()
-    .min(1, 'VIN is required')
-    .regex(VIN_REGEX, 'VIN must be exactly 17 valid characters'),
+  vin: z.string().min(1, 'VIN is required'),
   year: z
     .number()
     .int()
