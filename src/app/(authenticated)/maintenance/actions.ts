@@ -1,11 +1,25 @@
 'use server';
 
 import { createAdminClient as createClient } from '@/lib/supabase/admin';
+import { createClient as createServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+
+// Fallback user ID when auth session is unavailable
+const FALLBACK_USER_ID = 'eb5fe79c-1bb1-4746-8f3f-d8497f5929a2';
 
 export async function createMaintenanceRecord(formData: FormData) {
   try {
     const supabase = createClient();
+
+    // Try to get the logged-in user
+    let userId = FALLBACK_USER_ID;
+    try {
+      const serverClient = await createServerClient();
+      const { data: { user } } = await serverClient.auth.getUser();
+      if (user?.id) userId = user.id;
+    } catch {
+      // cookie-based auth unavailable, use fallback
+    }
 
     const vehicleId = formData.get('vehicle_id') as string;
     const scheduleId = formData.get('schedule_id') as string;
@@ -28,7 +42,7 @@ export async function createMaintenanceRecord(formData: FormData) {
       .insert({
         vehicle_id: vehicleId,
         schedule_id: scheduleId || null,
-        performed_by: null,
+        performed_by: userId,
         mileage_at: mileageAt,
         hours_at: hoursAt,
         description,
