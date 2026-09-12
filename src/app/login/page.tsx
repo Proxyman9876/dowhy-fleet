@@ -2,10 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { SUPABASE_URL } from '@/lib/supabase/config';
-import { loginSchema } from '@/lib/validators/auth';
-import { ZodError } from 'zod';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase/config';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,27 +17,43 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const data = loginSchema.parse({ email, password });
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
+      // Direct fetch to Supabase Auth - bypass client library entirely
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (authError) {
-        setError(authError.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error_description || data.msg || 'Login failed');
         return;
+      }
+
+      // Store the session tokens
+      if (data.access_token) {
+        // Set cookies for the server-side middleware
+        document.cookie = `sb-access-token=${data.access_token}; path=/; max-age=${data.expires_in}; SameSite=Lax`;
+        document.cookie = `sb-refresh-token=${data.refresh_token}; path=/; max-age=604800; SameSite=Lax`;
+
+        // Also initialize the Supabase client with the session
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        await supabase.auth.setSession({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+        });
       }
 
       router.push('/');
       router.refresh();
     } catch (err) {
-      if (err instanceof ZodError) {
-        setError(err.issues.map((issue) => issue.message).join(', '));
-      } else {
-        const msg = err instanceof Error ? err.message : String(err);
-        setError(`Error: ${msg}`);
-      }
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Error: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -53,9 +66,6 @@ export default function LoginPage() {
           <img src="/logo.webp" alt="Dowhy Towing" className="h-16 w-auto" />
           <p className="mt-2 text-sm text-gray-500">
             Fleet Maintenance System
-          </p>
-          <p className="mt-1 text-xs text-gray-300 break-all">
-            {SUPABASE_URL}
           </p>
         </div>
 
