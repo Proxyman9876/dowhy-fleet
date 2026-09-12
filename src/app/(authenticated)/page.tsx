@@ -9,12 +9,23 @@ import { Badge } from '@/components/ui/badge';
 import type { MaintenanceStatus } from '@/types/enums';
 
 export default async function DashboardPage() {
-  const [stats, overdueItems, recentRecords, lowStockParts] = await Promise.all([
-    getDashboardStats(),
-    getOverdueItems(),
-    getMaintenanceRecords({ limit: 5 }),
-    getLowStockParts(),
-  ]);
+  let stats: Awaited<ReturnType<typeof getDashboardStats>> = {
+    totalVehicles: 0, activeVehicles: 0, overdueCount: 0, dueSoonCount: 0, lowStockCount: 0,
+  };
+  let overdueItems: Awaited<ReturnType<typeof getOverdueItems>> = [];
+  let recentRecords: Awaited<ReturnType<typeof getMaintenanceRecords>> = [];
+  let lowStockParts: Awaited<ReturnType<typeof getLowStockParts>> = [];
+
+  try {
+    [stats, overdueItems, recentRecords, lowStockParts] = await Promise.all([
+      getDashboardStats(),
+      getOverdueItems(),
+      getMaintenanceRecords({ limit: 5 }),
+      getLowStockParts(),
+    ]);
+  } catch (e) {
+    console.error('Dashboard data fetch error:', e);
+  }
 
   const statCards = [
     { label: 'Total Vehicles', value: stats.totalVehicles, icon: Truck, color: 'text-blue-700' },
