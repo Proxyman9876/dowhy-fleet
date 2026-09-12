@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase/config';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,38 +15,16 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ email, password }),
+      const supabase = createClient();
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error_description || data.msg || 'Invalid email or password');
+      if (authError) {
+        setError(authError.message);
         return;
       }
-
-      // Store tokens in cookies that the server middleware can read
-      const ref = SUPABASE_URL.match(/\/\/(.*?)\.supabase/)?.[1] ?? 'app';
-      const cookieName = `sb-${ref}-auth-token`;
-      const session = JSON.stringify({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_at: Math.floor(Date.now() / 1000) + data.expires_in,
-        token_type: data.token_type,
-        user: data.user,
-      });
-
-      document.cookie = `${cookieName}=${encodeURIComponent(session)}; path=/; max-age=${data.expires_in}; SameSite=Lax`;
-
-      // Also store in localStorage for the Supabase client
-      const storageKey = `sb-${ref}-auth-token`;
-      localStorage.setItem(storageKey, session);
 
       // Hard redirect to force server-side session pickup
       window.location.href = '/';
