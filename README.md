@@ -76,10 +76,10 @@ supabase/
 ## Implementation Progress
 
 - [x] Phase 1: Project scaffolding, database schema, Zod validators
-- [ ] Phase 2: Authentication + layout shell
-- [ ] Phase 3: Vehicles CRUD + QR codes
-- [ ] Phase 4: Maintenance schedules + records + due calculations
-- [ ] Phase 5: Parts inventory
-- [ ] Phase 6: Dashboard + reports
-- [ ] Phase 7: CSV/Excel import
-- [ ] Phase 8: PWA + deployment
+- [x] Phase 2: Authentication + layout shell
+- [x] Phase 3: Vehicles CRUD + QR codes
+- [x] Phase 4: Maintenance schedules + records + due calculations
+- [x] Phase 5: Parts inventory
+- [x] Phase 6: Dashboard + reports
+- [x] Phase 7: CSV/Excel import
+- [x] Phase 8: PWA + deployment
