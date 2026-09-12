@@ -1,0 +1,4 @@
+// Supabase connection config with hardcoded fallbacks for deployment reliability
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qdkagpiccjgbdrcwpcpr.supabase.co';
+export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFka2FncGljY2pnYmRyY3dwY3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNTU2NTMsImV4cCI6MjEwNDczMTY1M30.ie4QNJe7knYTovKZHiUO-_-4mvIpiSbZelRZ30S8AwM';
+export const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFka2FncGljY2pnYmRyY3dwY3ByIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4OTE1NTY1MywiZXhwIjoyMTA0NzMxNjUzfQ.8_hA_G3j8EBgOkzdQjuPYJr-7ab43ioxiFkraTKzqQs';
