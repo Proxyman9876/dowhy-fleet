@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { SUPABASE_URL } from '@/lib/supabase/config';
 import { loginSchema } from '@/lib/validators/auth';
 import { ZodError } from 'zod';
 
@@ -37,7 +38,8 @@ export default function LoginPage() {
       if (err instanceof ZodError) {
         setError(err.issues.map((issue) => issue.message).join(', '));
       } else {
-        setError('An unexpected error occurred');
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(`Error: ${msg}`);
       }
     } finally {
       setLoading(false);
@@ -51,6 +53,9 @@ export default function LoginPage() {
           <img src="/logo.webp" alt="Dowhy Towing" className="h-16 w-auto" />
           <p className="mt-2 text-sm text-gray-500">
             Fleet Maintenance System
+          </p>
+          <p className="mt-1 text-xs text-gray-300 break-all">
+            {SUPABASE_URL}
           </p>
         </div>
 
