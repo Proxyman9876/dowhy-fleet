@@ -1,9 +1,20 @@
 'use server';
 
 import { createAdminClient as createClient } from '@/lib/supabase/admin';
+import { createClient as createServerClient } from '@/lib/supabase/server';
 import { partCreateSchema, partUpdateSchema, inventoryAdjustSchema } from '@/lib/validators/parts';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
+
+const FALLBACK_USER_ID = 'eb5fe79c-1bb1-4746-8f3f-d8497f5929a2';
+
+async function getCurrentUserId(): Promise<string> {
+  try {
+    const client = await createServerClient();
+    const { data: { user } } = await client.auth.getUser();
+    if (user?.id) return user.id;
+  } catch {}
+  return FALLBACK_USER_ID;
+}
 
 export async function createPart(formData: FormData) {
   const raw = Object.fromEntries(formData);
@@ -90,7 +101,7 @@ export async function adjustInventory(formData: FormData) {
     transaction_type: parsed.transaction_type,
     quantity: parsed.quantity,
     notes: parsed.notes,
-    performed_by: null,
+    performed_by: await getCurrentUserId(),
   });
 
   revalidatePath(`/parts/${parsed.part_id}`);
