@@ -1,7 +1,5 @@
 import Link from 'next/link';
-import { Plus, AlertTriangle } from 'lucide-react';
 import { getPartsWithInventory } from '@/lib/services/parts';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils/format';
 
@@ -12,10 +10,11 @@ export default async function PartsPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Parts Inventory</h1>
-        <Link href="/parts/new">
-          <Button size="lg">
-            <Plus className="mr-2 h-5 w-5" /> Add Part
-          </Button>
+        <Link
+          href="/parts/new"
+          className="rounded-lg bg-blue-700 px-4 py-3 text-base font-medium text-white hover:bg-blue-800"
+        >
+          + Add Part
         </Link>
       </div>
 
@@ -36,9 +35,7 @@ export default async function PartsPage() {
                       <span className="font-semibold text-gray-900 truncate">{part.part_number}</span>
                       {part.category && <Badge>{part.category}</Badge>}
                       {lowStock && (
-                        <Badge variant="warning">
-                          <AlertTriangle className="mr-1 h-3 w-3" />Low
-                        </Badge>
+                        <Badge variant="warning">Low</Badge>
                       )}
                     </div>
                     <p className="text-sm text-gray-500 truncate">{part.name}</p>

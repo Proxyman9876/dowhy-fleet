@@ -1,27 +1,31 @@
 import Link from 'next/link';
-import { Plus } from 'lucide-react';
 import { getVehicles } from '@/lib/services/vehicles';
 import { VehicleCard } from '@/components/vehicles/vehicle-card';
-import { Button } from '@/components/ui/button';
 import { VehicleSearch } from '@/components/vehicles/vehicle-search';
 
 export default async function VehiclesPage(props: {
   searchParams: Promise<{ status?: string; q?: string }>;
 }) {
-  const searchParams = await props.searchParams;
-  const vehicles = await getVehicles({
-    status: searchParams.status,
-    search: searchParams.q,
-  });
+  let vehicles: Awaited<ReturnType<typeof getVehicles>> = [];
+  try {
+    const searchParams = await props.searchParams;
+    vehicles = await getVehicles({
+      status: searchParams.status,
+      search: searchParams.q,
+    });
+  } catch (e) {
+    console.error('Vehicles fetch error:', e);
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Vehicles</h1>
-        <Link href="/vehicles/new">
-          <Button size="lg">
-            <Plus className="mr-2 h-5 w-5" /> Add Vehicle
-          </Button>
+        <Link
+          href="/vehicles/new"
+          className="rounded-lg bg-blue-700 px-4 py-3 text-base font-medium text-white hover:bg-blue-800 active:bg-blue-900"
+        >
+          + Add Vehicle
         </Link>
       </div>
 

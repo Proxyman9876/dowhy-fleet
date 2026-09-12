@@ -1,7 +1,5 @@
 import Link from 'next/link';
-import { Plus } from 'lucide-react';
 import { getSchedules } from '@/lib/services/schedules';
-import { Button } from '@/components/ui/button';
 
 export default async function SchedulesPage() {
   const schedules = await getSchedules();
@@ -10,10 +8,11 @@ export default async function SchedulesPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Maintenance Schedules</h1>
-        <Link href="/settings/schedules/new">
-          <Button size="lg">
-            <Plus className="mr-2 h-5 w-5" /> Add Schedule
-          </Button>
+        <Link
+          href="/settings/schedules/new"
+          className="rounded-lg bg-blue-700 px-4 py-3 text-base font-medium text-white hover:bg-blue-800"
+        >
+          + Add Schedule
         </Link>
       </div>
 

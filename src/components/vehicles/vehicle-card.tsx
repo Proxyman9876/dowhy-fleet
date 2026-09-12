@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Truck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatMileage, formatHours } from '@/lib/utils/format';
 import type { Vehicle } from '@/types/database';
@@ -31,8 +30,8 @@ export function VehicleCard({ vehicle, worstStatus }: VehicleCardProps) {
     <Link href={`/vehicles/${vehicle.id}`}>
       <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm
                       transition-shadow hover:shadow-md active:bg-gray-50 min-h-[72px]">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-          <Truck className="h-6 w-6 text-blue-700" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xl">
+          🚛
         </div>
 
         <div className="flex-1 min-w-0">

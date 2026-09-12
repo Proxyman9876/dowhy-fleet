@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Truck, Wrench, Package, FileUp } from 'lucide-react';
 

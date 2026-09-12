@@ -3,7 +3,6 @@ import { getPart, getInventoryTransactions } from '@/lib/services/inventory';
 import { Badge } from '@/components/ui/badge';
 import { InventoryAdjustDialog } from '@/components/parts/inventory-adjust-dialog';
 import { formatCurrency, formatDate } from '@/lib/utils/format';
-import { AlertTriangle } from 'lucide-react';
 
 export default async function PartDetailPage(props: {
   params: Promise<{ id: string }>;
@@ -27,7 +26,7 @@ export default async function PartDetailPage(props: {
           {part.category && <Badge>{part.category}</Badge>}
           {lowStock && (
             <Badge variant="warning">
-              <AlertTriangle className="mr-1 h-3 w-3" /> Low Stock
+              Low Stock
             </Badge>
           )}
         </div>

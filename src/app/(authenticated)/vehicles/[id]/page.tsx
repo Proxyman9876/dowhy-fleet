@@ -1,10 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Pencil, Wrench } from 'lucide-react';
 import { getVehicle } from '@/lib/services/vehicles';
 import { getVehicleSchedules, getSchedules } from '@/lib/services/schedules';
 import { getMaintenanceRecords } from '@/lib/services/maintenance';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MileageUpdateForm } from '@/components/vehicles/mileage-update-form';
 import { QrCodeDisplay } from '@/components/vehicles/qr-code-display';
@@ -51,15 +49,17 @@ export default async function VehicleDetailPage(props: {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href={`/vehicles/${id}/edit`}>
-            <Button variant="secondary" size="md">
-              <Pencil className="mr-2 h-4 w-4" /> Edit
-            </Button>
+          <Link
+            href={`/vehicles/${id}/edit`}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Edit
           </Link>
-          <Link href={`/vehicles/${id}/service`}>
-            <Button size="md">
-              <Wrench className="mr-2 h-4 w-4" /> Log Service
-            </Button>
+          <Link
+            href={`/vehicles/${id}/service`}
+            className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
+          >
+            Log Service
           </Link>
         </div>
       </div>
