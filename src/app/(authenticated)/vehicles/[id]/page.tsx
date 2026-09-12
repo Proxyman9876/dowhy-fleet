@@ -2,18 +2,28 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Pencil, Wrench } from 'lucide-react';
 import { getVehicle } from '@/lib/services/vehicles';
+import { getVehicleSchedules, getSchedules } from '@/lib/services/schedules';
+import { getMaintenanceRecords } from '@/lib/services/maintenance';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MileageUpdateForm } from '@/components/vehicles/mileage-update-form';
 import { QrCodeDisplay } from '@/components/vehicles/qr-code-display';
 import { DeleteVehicleButton } from '@/components/vehicles/delete-vehicle-button';
+import { VehicleSchedules } from '@/components/maintenance/vehicle-schedules';
+import { MaintenanceRecordCard } from '@/components/maintenance/maintenance-record-card';
 import { formatMileage, formatHours } from '@/lib/utils/format';
 
 export default async function VehicleDetailPage(props: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await props.params;
-  const vehicle = await getVehicle(id);
+  const [vehicle, vehicleSchedules, allSchedules, records] = await Promise.all([
+    getVehicle(id),
+    getVehicleSchedules(id),
+    getSchedules(),
+    getMaintenanceRecords({ vehicleId: id, limit: 10 }),
+  ]);
+
   if (!vehicle) notFound();
 
   const statusColors: Record<string, string> = {
@@ -105,10 +115,25 @@ export default async function VehicleDetailPage(props: {
             />
           </div>
 
-          {/* Maintenance History placeholder */}
+          {/* Maintenance Schedules */}
+          <VehicleSchedules
+            vehicleId={vehicle.id}
+            schedules={vehicleSchedules}
+            allSchedules={allSchedules}
+          />
+
+          {/* Maintenance History */}
           <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <h2 className="text-lg font-semibold text-gray-900">Maintenance History</h2>
-            <p className="mt-2 text-sm text-gray-500">Coming in Phase 4.</p>
+            <h2 className="mb-3 text-lg font-semibold text-gray-900">Maintenance History</h2>
+            {records.length === 0 ? (
+              <p className="text-sm text-gray-500">No maintenance records yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {records.map((r) => (
+                  <MaintenanceRecordCard key={r.id} record={r} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
