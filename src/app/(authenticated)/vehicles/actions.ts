@@ -12,6 +12,12 @@ export async function createVehicle(formData: FormData) {
     year: Number(raw.year),
     current_mileage: Number(raw.current_mileage || 0),
     current_hours: Number(raw.current_hours || 0),
+    tire_rotation_mileage: raw.tire_rotation_mileage ? Number(raw.tire_rotation_mileage) : null,
+    greased_mileage: raw.greased_mileage ? Number(raw.greased_mileage) : null,
+    differential_oil_mileage: raw.differential_oil_mileage ? Number(raw.differential_oil_mileage) : null,
+    transmission_oil_mileage: raw.transmission_oil_mileage || null,
+    tire_notes: raw.tire_notes || null,
+    major_repairs: raw.major_repairs || null,
   });
 
   const supabase = await createClient();
@@ -35,6 +41,12 @@ export async function updateVehicle(id: string, formData: FormData) {
     year: raw.year ? Number(raw.year) : undefined,
     current_mileage: raw.current_mileage ? Number(raw.current_mileage) : undefined,
     current_hours: raw.current_hours ? Number(raw.current_hours) : undefined,
+    tire_rotation_mileage: raw.tire_rotation_mileage ? Number(raw.tire_rotation_mileage) : null,
+    greased_mileage: raw.greased_mileage ? Number(raw.greased_mileage) : null,
+    differential_oil_mileage: raw.differential_oil_mileage ? Number(raw.differential_oil_mileage) : null,
+    transmission_oil_mileage: raw.transmission_oil_mileage || null,
+    tire_notes: raw.tire_notes || null,
+    major_repairs: raw.major_repairs || null,
   });
 
   const supabase = await createClient();

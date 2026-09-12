@@ -47,11 +47,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-blue-800">
-            Dowhy Fleet
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <img src="/logo.webp" alt="Dowhy Towing" className="h-16 w-auto" />
+          <p className="mt-2 text-sm text-gray-500">
             Fleet Maintenance System
           </p>
         </div>

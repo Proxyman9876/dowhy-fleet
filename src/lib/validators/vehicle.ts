@@ -22,6 +22,12 @@ export const vehicleCreateSchema = z.object({
   status: z.enum(VEHICLE_STATUSES).default('active'),
   oil_type: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
+  tire_rotation_mileage: z.number().int().min(0).optional().nullable(),
+  greased_mileage: z.number().int().min(0).optional().nullable(),
+  tire_notes: z.string().optional().nullable(),
+  differential_oil_mileage: z.number().int().min(0).optional().nullable(),
+  transmission_oil_mileage: z.string().optional().nullable(),
+  major_repairs: z.string().optional().nullable(),
 });
 
 export const vehicleUpdateSchema = vehicleCreateSchema.partial();

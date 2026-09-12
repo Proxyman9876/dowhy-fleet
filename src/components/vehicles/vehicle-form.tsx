@@ -107,6 +107,66 @@ export function VehicleForm({ vehicle, action }: VehicleFormProps) {
         </div>
       )}
 
+      {/* Tire & Fluid Tracking */}
+      <h3 className="pt-2 text-sm font-semibold text-gray-700 border-t border-gray-100">Tire & Fluid Tracking</h3>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Input
+          id="tire_rotation_mileage"
+          name="tire_rotation_mileage"
+          label="Tire Rotation/Change Mileage"
+          type="number"
+          defaultValue={vehicle?.tire_rotation_mileage ?? ''}
+        />
+        <Input
+          id="greased_mileage"
+          name="greased_mileage"
+          label="Last Greased Mileage"
+          type="number"
+          defaultValue={vehicle?.greased_mileage ?? ''}
+        />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Input
+          id="differential_oil_mileage"
+          name="differential_oil_mileage"
+          label="Differential Oil Mileage"
+          type="number"
+          defaultValue={vehicle?.differential_oil_mileage ?? ''}
+        />
+        <Input
+          id="transmission_oil_mileage"
+          name="transmission_oil_mileage"
+          label="Transmission Oil"
+          placeholder="e.g. Factory, or mileage"
+          defaultValue={vehicle?.transmission_oil_mileage ?? ''}
+        />
+      </div>
+
+      <Input
+        id="tire_notes"
+        name="tire_notes"
+        label="Tire Condition"
+        placeholder="e.g. Good, Brand New, Needs Replacement"
+        defaultValue={vehicle?.tire_notes ?? ''}
+      />
+
+      <div>
+        <label htmlFor="major_repairs" className="mb-1 block text-sm font-medium text-gray-700">
+          Major Repairs
+        </label>
+        <textarea
+          id="major_repairs"
+          name="major_repairs"
+          rows={2}
+          defaultValue={vehicle?.major_repairs ?? ''}
+          placeholder="e.g. Turbo, fan clutch and belts at 889,054"
+          className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-base
+                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+        />
+      </div>
+
       <div>
         <label htmlFor="notes" className="mb-1 block text-sm font-medium text-gray-700">
           Notes

@@ -4,20 +4,12 @@ import { useState } from 'react';
 import { Upload, FileSpreadsheet, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type Step = 'upload' | 'preview' | 'mapping' | 'result';
+type Step = 'upload' | 'preview' | 'result';
 
 interface ParsedData {
   headers: string[];
   rows: Array<{ row_number: number; raw: Record<string, unknown> }>;
   totalRows: number;
-}
-
-interface ColumnMapping {
-  unit_number: string;
-  make_model: string;
-  vin: string;
-  oil_type: string;
-  current_mileage: string;
 }
 
 interface ImportResult {
@@ -28,38 +20,25 @@ interface ImportResult {
   errors: string[];
 }
 
-// Known column patterns from TRUCK MAINTENANCE.xlsx
-const COLUMN_GUESSES: Record<string, string[]> = {
-  unit_number: ['TRUCK #', 'TRUCK', 'UNIT', 'UNIT NUMBER', 'UNIT #'],
-  make_model: ['MAKE/MODEL', 'MAKE MODEL', 'MAKE', 'VEHICLE'],
-  vin: ['VIN #', 'VIN', 'VIN NUMBER'],
-  oil_type: ['OIL TYPE', 'OIL'],
-  current_mileage: ['OIL CHANGE MILEAGE', 'MILEAGE', 'CURRENT MILEAGE', 'MILES'],
-};
+function cleanStr(val: unknown): string {
+  return String(val ?? '').trim();
+}
 
-function guessMapping(headers: string[]): ColumnMapping {
-  const mapping: ColumnMapping = { unit_number: '', make_model: '', vin: '', oil_type: '', current_mileage: '' };
-
-  for (const [field, patterns] of Object.entries(COLUMN_GUESSES)) {
-    for (const header of headers) {
-      const normalized = header.toUpperCase().trim();
-      if (patterns.some((p) => normalized.includes(p) || p.includes(normalized))) {
-        mapping[field as keyof ColumnMapping] = header;
-        break;
-      }
+// Auto-detect column by checking headers against known patterns
+function findColumn(headers: string[], patterns: string[]): string {
+  for (const header of headers) {
+    const normalized = header.toUpperCase().trim();
+    if (patterns.some((p) => normalized === p || normalized.includes(p))) {
+      return header;
     }
   }
-
-  return mapping;
+  return '';
 }
 
 export default function ImportPage() {
   const [step, setStep] = useState<Step>('upload');
   const [file, setFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
-  const [mapping, setMapping] = useState<ColumnMapping>({
-    unit_number: '', make_model: '', vin: '', oil_type: '', current_mileage: '',
-  });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState('');
@@ -82,8 +61,7 @@ export default function ImportPage() {
     }
 
     setParsedData(data);
-    setMapping(guessMapping(data.headers));
-    setStep('mapping');
+    setStep('preview');
     setLoading(false);
   }
 
@@ -92,49 +70,92 @@ export default function ImportPage() {
     setLoading(true);
     setError('');
 
-    // Extract vehicles and parts from parsed rows
+    const headers = parsedData.headers;
+
+    // Auto-detect columns
+    const colUnitNumber = findColumn(headers, ['TRUCK #', 'TRUCK', 'UNIT', 'UNIT #']);
+    const colMakeModel = findColumn(headers, ['MAKE/MODEL', 'MAKE MODEL']);
+    const colVin = findColumn(headers, ['VIN #', 'VIN']);
+    const colOilChangeMileage = findColumn(headers, ['OIL CHANGE MILEAGE']);
+    const colOilType = findColumn(headers, ['OIL TYPE']);
+
+    // Filter columns — each filter has a mileage column, part number column, and qty column
+    // The spreadsheet pattern: FILTER_NAME, Part Number(_{n}), QTY ON HAND(_{n})
+    const colOilFilter = findColumn(headers, ['OIL FILTER']);
+    const colAirFilter = findColumn(headers, ['AIR FILTER']);
+    const colFuelFilter = findColumn(headers, ['FUEL FILTER']);
+    const colFuelWaterSep = findColumn(headers, ['FUEL/H2O SEP', 'FUEL/WATER']);
+    const colCoolantFilter = findColumn(headers, ['COOLANT FILTER']);
+    const colHydraulicFilter = findColumn(headers, ['HYDRAULIC FILTER']);
+
+    // Part number and qty columns follow each filter column
+    // Headers: "Part Number", "Part Number_1", etc. and "QTY ON HAND", "QUANTITY ON HAND", etc.
+    const partNumCols = headers.filter((h) => h.toUpperCase().startsWith('PART NUMBER'));
+    const qtyCols = headers.filter((h) => {
+      const u = h.toUpperCase();
+      return u.startsWith('QTY ON HAND') || u.startsWith('QUANTITY ON HAND');
+    });
+
+    // Map filter columns to their associated part number and qty columns by position
+    const filterOrder = [colOilFilter, colAirFilter, colFuelFilter, colFuelWaterSep, colCoolantFilter, colHydraulicFilter];
+    const filterPartMap: Record<string, { partCol: string; qtyCol: string }> = {};
+    let partIdx = 0;
+    for (const filterCol of filterOrder) {
+      if (filterCol) {
+        filterPartMap[filterCol] = {
+          partCol: partNumCols[partIdx] ?? '',
+          qtyCol: qtyCols[partIdx] ?? '',
+        };
+        partIdx++;
+      }
+    }
+
+    // Additional vehicle columns
+    const colTireRotation = findColumn(headers, ['ROTATION/CHANGE', 'TIRE ROTATION']);
+    const colGreased = findColumn(headers, ['GREASED']);
+    const colTires = findColumn(headers, ['TIRES']);
+    const colDiffOil = findColumn(headers, ['DIFFERENTIAL OIL', 'DIFF OIL']);
+    const colTransOil = findColumn(headers, ['TRANSMISSION OIL', 'TRANS OIL']);
+    const colMajorRepairs = findColumn(headers, ['MAJOR REPAIRS', 'REPAIRS']);
+
+    function getFilterInfo(row: Record<string, unknown>, filterCol: string) {
+      const mapping = filterPartMap[filterCol];
+      return {
+        last_mileage: cleanStr(row[filterCol]),
+        part_number: mapping ? cleanStr(row[mapping.partCol]) : '',
+        qty_on_hand: mapping ? cleanStr(row[mapping.qtyCol]) : '',
+      };
+    }
+
     const vehicles = parsedData.rows
       .filter((row) => {
-        const unitNum = String(row.raw[mapping.unit_number] ?? '').trim();
+        const unitNum = cleanStr(row.raw[colUnitNumber]);
         return unitNum.length > 0;
       })
       .map((row) => ({
-        unit_number: String(row.raw[mapping.unit_number] ?? '').trim(),
-        make_model: String(row.raw[mapping.make_model] ?? '').trim(),
-        vin: String(row.raw[mapping.vin] ?? '').trim(),
-        oil_type: String(row.raw[mapping.oil_type] ?? '').trim(),
-        current_mileage: row.raw[mapping.current_mileage],
-        notes: '',
+        unit_number: cleanStr(row.raw[colUnitNumber]),
+        make_model: cleanStr(row.raw[colMakeModel]),
+        vin: cleanStr(row.raw[colVin]),
+        oil_type: cleanStr(row.raw[colOilType]),
+        current_mileage: cleanStr(row.raw[colOilChangeMileage]),
+        oil_filter: getFilterInfo(row.raw, colOilFilter),
+        air_filter: getFilterInfo(row.raw, colAirFilter),
+        fuel_filter: getFilterInfo(row.raw, colFuelFilter),
+        fuel_water_sep: getFilterInfo(row.raw, colFuelWaterSep),
+        coolant_filter: getFilterInfo(row.raw, colCoolantFilter),
+        hydraulic_filter: getFilterInfo(row.raw, colHydraulicFilter),
+        tire_rotation: cleanStr(row.raw[colTireRotation]),
+        greased: cleanStr(row.raw[colGreased]),
+        tires: cleanStr(row.raw[colTires]),
+        differential_oil: cleanStr(row.raw[colDiffOil]),
+        transmission_oil: cleanStr(row.raw[colTransOil]),
+        major_repairs: cleanStr(row.raw[colMajorRepairs]),
       }));
-
-    // Extract unique parts from filter columns
-    const partColumns = parsedData.headers.filter((h) => {
-      const upper = h.toUpperCase();
-      return upper === 'PART NUMBER' || upper.includes('PART');
-    });
-
-    const parts: Array<{ part_number: string; name: string; category: string; quantity_on_hand: number }> = [];
-    const seenParts = new Set<string>();
-
-    for (const row of parsedData.rows) {
-      for (const col of partColumns) {
-        const partNum = String(row.raw[col] ?? '').trim();
-        if (partNum && partNum !== 'N/A' && !seenParts.has(partNum)) {
-          seenParts.add(partNum);
-          parts.push({
-            part_number: partNum,
-            name: partNum,
-            category: 'Filter',
-            quantity_on_hand: 0,
-          });
-        }
-      }
-    }
 
     const res = await fetch('/api/import/apply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vehicles, parts }),
+      body: JSON.stringify({ vehicles, parts: [] }),
     });
 
     const data = await res.json();
@@ -190,61 +211,44 @@ export default function ImportPage() {
           </div>
         )}
 
-        {/* Step 2: Column Mapping */}
-        {step === 'mapping' && parsedData && (
+        {/* Step 2: Preview */}
+        {step === 'preview' && parsedData && (
           <div className="space-y-4">
             <div className="rounded-xl border border-gray-200 bg-white p-4">
               <h2 className="mb-3 text-lg font-semibold text-gray-900">
-                Column Mapping — {parsedData.totalRows} rows found
+                Preview — {parsedData.totalRows} rows found
               </h2>
               <p className="mb-4 text-sm text-gray-500">
-                Map your spreadsheet columns to vehicle fields. We auto-detected what we could.
+                Detected columns: {parsedData.headers.length}. All spreadsheet columns will be imported including
+                filter types, part numbers, quantities, tire info, fluids, and major repairs.
               </p>
-
-              <div className="space-y-3">
-                {(Object.entries(mapping) as [keyof ColumnMapping, string][]).map(([field, value]) => (
-                  <div key={field} className="grid grid-cols-2 gap-3 items-center">
-                    <label className="text-sm font-medium text-gray-700 capitalize">
-                      {field.replace(/_/g, ' ')}
-                    </label>
-                    <select
-                      value={value}
-                      onChange={(e) => setMapping({ ...mapping, [field]: e.target.value })}
-                      className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                    >
-                      <option value="">— Skip —</option>
-                      {parsedData.headers.map((h) => (
-                        <option key={h} value={h}>{h}</option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            {/* Preview */}
+            {/* Preview table */}
             <div className="rounded-xl border border-gray-200 bg-white p-4 overflow-x-auto">
               <h3 className="mb-2 text-sm font-semibold text-gray-700">Preview (first 5 rows)</h3>
               <table className="w-full text-xs">
                 <thead>
                   <tr>
                     <th className="p-1 text-left text-gray-500">#</th>
-                    {Object.entries(mapping).filter(([, v]) => v).map(([field]) => (
-                      <th key={field} className="p-1 text-left text-gray-500 capitalize">
-                        {field.replace(/_/g, ' ')}
-                      </th>
+                    {parsedData.headers.slice(0, 8).map((h) => (
+                      <th key={h} className="p-1 text-left text-gray-500 whitespace-nowrap">{h}</th>
                     ))}
+                    {parsedData.headers.length > 8 && (
+                      <th className="p-1 text-left text-gray-400">+{parsedData.headers.length - 8} more</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {parsedData.rows.slice(0, 5).map((row) => (
                     <tr key={row.row_number} className="border-t border-gray-100">
                       <td className="p-1 text-gray-400">{row.row_number}</td>
-                      {Object.entries(mapping).filter(([, v]) => v).map(([field, col]) => (
-                        <td key={field} className="p-1 text-gray-900 truncate max-w-[150px]">
-                          {String(row.raw[col] ?? '')}
+                      {parsedData.headers.slice(0, 8).map((h) => (
+                        <td key={h} className="p-1 text-gray-900 truncate max-w-[120px]">
+                          {String(row.raw[h] ?? '')}
                         </td>
                       ))}
+                      {parsedData.headers.length > 8 && <td className="p-1 text-gray-400">...</td>}
                     </tr>
                   ))}
                 </tbody>
@@ -253,7 +257,7 @@ export default function ImportPage() {
 
             <div className="flex gap-3">
               <Button onClick={handleImport} disabled={loading} size="lg">
-                {loading ? 'Importing...' : `Import ${parsedData.totalRows} Rows`}
+                {loading ? 'Importing...' : `Import ${parsedData.totalRows} Vehicles`}
               </Button>
               <Button variant="secondary" onClick={() => { setStep('upload'); setParsedData(null); }}>
                 Back

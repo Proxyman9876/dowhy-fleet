@@ -34,7 +34,7 @@ export function Header({ profile }: HeaderProps) {
   return (
     <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-6">
       <div className="flex items-center gap-3">
-        <span className="text-lg font-bold text-blue-800 lg:hidden">Dowhy</span>
+        <img src="/logo.webp" alt="Dowhy Towing" className="h-8 w-auto lg:hidden" />
         <h2 className="text-lg font-semibold text-gray-900 hidden lg:block">{getTitle()}</h2>
       </div>
 

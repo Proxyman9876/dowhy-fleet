@@ -33,6 +33,11 @@ export default async function VehicleDetailPage(props: {
     sold: 'default',
   };
 
+  // Separate filter schedules from other schedules for display
+  const filterSchedules = vehicleSchedules.filter((vs) =>
+    ['Oil Change', 'Oil Filter', 'Air Filter', 'Fuel Filter', 'Fuel/Water Separator', 'Coolant Filter', 'Hydraulic Filter'].includes(vs.schedule.name)
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -105,6 +110,97 @@ export default async function VehicleDetailPage(props: {
               </div>
             )}
           </div>
+
+          {/* Filter / Service Info Table */}
+          {filterSchedules.length > 0 && (
+            <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <h2 className="mb-3 text-lg font-semibold text-gray-900">Filters & Service</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-left">
+                      <th className="pb-2 pr-4 font-medium text-gray-500">Type</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500">Last Service</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500">Part #</th>
+                      <th className="pb-2 font-medium text-gray-500">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filterSchedules.map((vs) => {
+                      const statusColor = vs.cached_status === 'overdue'
+                        ? 'danger'
+                        : vs.cached_status === 'due_soon'
+                          ? 'warning'
+                          : 'success';
+                      return (
+                        <tr key={vs.id} className="border-b border-gray-50">
+                          <td className="py-2 pr-4 font-medium text-gray-900">{vs.schedule.name}</td>
+                          <td className="py-2 pr-4 text-gray-700">
+                            {vs.last_performed_mileage
+                              ? formatMileage(vs.last_performed_mileage)
+                              : '—'}
+                          </td>
+                          <td className="py-2 pr-4 font-mono text-xs text-gray-700">
+                            {vs.assigned_part?.part_number ?? '—'}
+                          </td>
+                          <td className="py-2">
+                            <Badge variant={statusColor as 'success' | 'danger' | 'warning' | 'default'}>
+                              {vs.cached_status.replace(/_/g, ' ')}
+                            </Badge>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Vehicle Condition */}
+          {(vehicle.tire_notes || vehicle.tire_rotation_mileage || vehicle.greased_mileage || vehicle.differential_oil_mileage || vehicle.transmission_oil_mileage || vehicle.major_repairs) && (
+            <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <h2 className="mb-3 text-lg font-semibold text-gray-900">Vehicle Condition</h2>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
+                {vehicle.tire_notes && (
+                  <div>
+                    <dt className="text-gray-500">Tires</dt>
+                    <dd className="text-gray-900">{vehicle.tire_notes}</dd>
+                  </div>
+                )}
+                {vehicle.tire_rotation_mileage != null && (
+                  <div>
+                    <dt className="text-gray-500">Tire Rotation/Change</dt>
+                    <dd className="text-gray-900">{formatMileage(vehicle.tire_rotation_mileage)}</dd>
+                  </div>
+                )}
+                {vehicle.greased_mileage != null && (
+                  <div>
+                    <dt className="text-gray-500">Last Greased</dt>
+                    <dd className="text-gray-900">{formatMileage(vehicle.greased_mileage)}</dd>
+                  </div>
+                )}
+                {vehicle.differential_oil_mileage != null && (
+                  <div>
+                    <dt className="text-gray-500">Differential Oil</dt>
+                    <dd className="text-gray-900">{formatMileage(vehicle.differential_oil_mileage)}</dd>
+                  </div>
+                )}
+                {vehicle.transmission_oil_mileage && (
+                  <div>
+                    <dt className="text-gray-500">Transmission Oil</dt>
+                    <dd className="text-gray-900">{vehicle.transmission_oil_mileage}</dd>
+                  </div>
+                )}
+              </dl>
+              {vehicle.major_repairs && (
+                <div className="mt-3 border-t border-gray-100 pt-3">
+                  <p className="text-sm text-gray-500">Major Repairs</p>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{vehicle.major_repairs}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Mileage Update */}
           <div className="rounded-xl border border-gray-200 bg-white p-4">

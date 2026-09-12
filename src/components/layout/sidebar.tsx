@@ -50,7 +50,7 @@ export function Sidebar({ profile }: SidebarProps) {
   return (
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:bg-white">
       <div className="flex h-16 items-center border-b border-gray-200 px-6">
-        <h1 className="text-lg font-bold text-blue-800">Dowhy Fleet</h1>
+        <img src="/logo.webp" alt="Dowhy Towing" className="h-10 w-auto" />
       </div>
 
       <nav className="flex flex-1 flex-col p-4">

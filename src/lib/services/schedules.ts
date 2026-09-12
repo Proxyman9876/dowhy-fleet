@@ -33,7 +33,7 @@ export async function getVehicleSchedules(vehicleId: string): Promise<VehicleSch
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('vehicle_maintenance_schedules')
-    .select('*, schedule:maintenance_schedules(*)')
+    .select('*, schedule:maintenance_schedules(*), assigned_part:parts!vehicle_maintenance_schedules_assigned_part_id_fkey(id, part_number, name)')
     .eq('vehicle_id', vehicleId)
     .eq('is_active', true);
 

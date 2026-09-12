@@ -33,6 +33,12 @@ export interface Vehicle {
   photo_url: string | null;
   is_deleted: boolean;
   version: number;
+  tire_rotation_mileage: number | null;
+  greased_mileage: number | null;
+  tire_notes: string | null;
+  differential_oil_mileage: number | null;
+  transmission_oil_mileage: string | null;
+  major_repairs: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -62,6 +68,7 @@ export interface VehicleMaintenanceSchedule {
   next_due_date: string | null;
   cached_status: MaintenanceStatus;
   custom_due_soon_pct: number | null;
+  assigned_part_id: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

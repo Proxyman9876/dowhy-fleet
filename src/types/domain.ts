@@ -18,6 +18,7 @@ export interface VehicleWithStatus extends Vehicle {
 /** A vehicle's schedule with the template info joined */
 export interface VehicleScheduleDetail extends VehicleMaintenanceSchedule {
   schedule: MaintenanceSchedule;
+  assigned_part: Pick<Part, 'id' | 'part_number' | 'name'> | null;
 }
 
 /** Maintenance record with performer and parts joined */
