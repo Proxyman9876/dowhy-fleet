@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Vehicle } from '@/types/database';
@@ -8,20 +9,40 @@ import { VEHICLE_STATUSES } from '@/types/enums';
 
 interface VehicleFormProps {
   vehicle?: Vehicle;
-  action: (formData: FormData) => Promise<{ error?: string } | void>;
+  action: (formData: FormData) => Promise<{ error?: string; success?: boolean; redirectTo?: string } | void>;
 }
 
 export function VehicleForm({ vehicle, action }: VehicleFormProps) {
-  const [state, formAction, pending] = useActionState(
-    async (_prev: { error?: string } | null, formData: FormData) => {
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
       const result = await action(formData);
-      return result ?? null;
-    },
-    null,
-  );
+      if (result?.error) {
+        setError(result.error);
+      } else if (result?.redirectTo) {
+        router.push(result.redirectTo);
+      } else {
+        router.push('/vehicles');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  const state = error ? { error } : null;
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {state?.error && (
         <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
           {state.error}

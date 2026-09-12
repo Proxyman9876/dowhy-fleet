@@ -7,8 +7,6 @@ import { redirect } from 'next/navigation';
 
 export async function createMaintenanceRecord(formData: FormData) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Not authenticated' };
 
   const raw = Object.fromEntries(formData);
   const partsJson = formData.get('parts_used') as string;
@@ -31,7 +29,7 @@ export async function createMaintenanceRecord(formData: FormData) {
     .insert({
       vehicle_id: parsed.vehicle_id,
       schedule_id: parsed.schedule_id,
-      performed_by: user.id,
+      performed_by: (raw.performed_by as string) || null,
       mileage_at: parsed.mileage_at,
       hours_at: parsed.hours_at,
       description: parsed.description,
@@ -62,5 +60,5 @@ export async function createMaintenanceRecord(formData: FormData) {
   revalidatePath(`/vehicles/${parsed.vehicle_id}`);
   revalidatePath('/maintenance');
   revalidatePath('/');
-  redirect(`/vehicles/${parsed.vehicle_id}`);
+  return { success: true, redirectTo: `/vehicles/${parsed.vehicle_id}` };
 }

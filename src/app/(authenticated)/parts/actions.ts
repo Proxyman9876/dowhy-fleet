@@ -37,7 +37,7 @@ export async function createPart(formData: FormData) {
   });
 
   revalidatePath('/parts');
-  redirect('/parts');
+  return { success: true };
 }
 
 export async function updatePart(id: string, formData: FormData) {
@@ -53,13 +53,11 @@ export async function updatePart(id: string, formData: FormData) {
 
   revalidatePath(`/parts/${id}`);
   revalidatePath('/parts');
-  redirect(`/parts/${id}`);
+  return { success: true, redirectTo: `/parts/${id}` };
 }
 
 export async function adjustInventory(formData: FormData) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Not authenticated' };
 
   const parsed = inventoryAdjustSchema.parse({
     part_id: formData.get('part_id'),
@@ -92,7 +90,7 @@ export async function adjustInventory(formData: FormData) {
     transaction_type: parsed.transaction_type,
     quantity: parsed.quantity,
     notes: parsed.notes,
-    performed_by: user.id,
+    performed_by: null,
   });
 
   revalidatePath(`/parts/${parsed.part_id}`);

@@ -7,18 +7,25 @@ import { redirect } from 'next/navigation';
 
 export async function createVehicle(formData: FormData) {
   const raw = Object.fromEntries(formData);
-  const parsed = vehicleCreateSchema.parse({
-    ...raw,
-    year: Number(raw.year),
-    current_mileage: Number(raw.current_mileage || 0),
-    current_hours: Number(raw.current_hours || 0),
-    tire_rotation_mileage: raw.tire_rotation_mileage ? Number(raw.tire_rotation_mileage) : null,
-    greased_mileage: raw.greased_mileage ? Number(raw.greased_mileage) : null,
-    differential_oil_mileage: raw.differential_oil_mileage ? Number(raw.differential_oil_mileage) : null,
-    transmission_oil_mileage: raw.transmission_oil_mileage || null,
-    tire_notes: raw.tire_notes || null,
-    major_repairs: raw.major_repairs || null,
-  });
+
+  let parsed;
+  try {
+    parsed = vehicleCreateSchema.parse({
+      ...raw,
+      year: Number(raw.year),
+      current_mileage: Number(raw.current_mileage || 0),
+      current_hours: Number(raw.current_hours || 0),
+      tire_rotation_mileage: raw.tire_rotation_mileage ? Number(raw.tire_rotation_mileage) : null,
+      greased_mileage: raw.greased_mileage ? Number(raw.greased_mileage) : null,
+      differential_oil_mileage: raw.differential_oil_mileage ? Number(raw.differential_oil_mileage) : null,
+      transmission_oil_mileage: raw.transmission_oil_mileage || null,
+      tire_notes: raw.tire_notes || null,
+      major_repairs: raw.major_repairs || null,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Validation failed';
+    return { error: msg };
+  }
 
   const supabase = createAdminClient();
   const { error } = await supabase.from('vehicles').insert(parsed);
@@ -31,23 +38,30 @@ export async function createVehicle(formData: FormData) {
   }
 
   revalidatePath('/vehicles');
-  redirect('/vehicles');
+  return { success: true };
 }
 
 export async function updateVehicle(id: string, formData: FormData) {
   const raw = Object.fromEntries(formData);
-  const parsed = vehicleUpdateSchema.parse({
-    ...raw,
-    year: raw.year ? Number(raw.year) : undefined,
-    current_mileage: raw.current_mileage ? Number(raw.current_mileage) : undefined,
-    current_hours: raw.current_hours ? Number(raw.current_hours) : undefined,
-    tire_rotation_mileage: raw.tire_rotation_mileage ? Number(raw.tire_rotation_mileage) : null,
-    greased_mileage: raw.greased_mileage ? Number(raw.greased_mileage) : null,
-    differential_oil_mileage: raw.differential_oil_mileage ? Number(raw.differential_oil_mileage) : null,
-    transmission_oil_mileage: raw.transmission_oil_mileage || null,
-    tire_notes: raw.tire_notes || null,
-    major_repairs: raw.major_repairs || null,
-  });
+
+  let parsed;
+  try {
+    parsed = vehicleUpdateSchema.parse({
+      ...raw,
+      year: raw.year ? Number(raw.year) : undefined,
+      current_mileage: raw.current_mileage ? Number(raw.current_mileage) : undefined,
+      current_hours: raw.current_hours ? Number(raw.current_hours) : undefined,
+      tire_rotation_mileage: raw.tire_rotation_mileage ? Number(raw.tire_rotation_mileage) : null,
+      greased_mileage: raw.greased_mileage ? Number(raw.greased_mileage) : null,
+      differential_oil_mileage: raw.differential_oil_mileage ? Number(raw.differential_oil_mileage) : null,
+      transmission_oil_mileage: raw.transmission_oil_mileage || null,
+      tire_notes: raw.tire_notes || null,
+      major_repairs: raw.major_repairs || null,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Validation failed';
+    return { error: msg };
+  }
 
   const supabase = createAdminClient();
   const { error } = await supabase
@@ -59,7 +73,7 @@ export async function updateVehicle(id: string, formData: FormData) {
 
   revalidatePath(`/vehicles/${id}`);
   revalidatePath('/vehicles');
-  redirect(`/vehicles/${id}`);
+  return { success: true, redirectTo: `/vehicles/${id}` };
 }
 
 export async function updateMileage(formData: FormData) {
@@ -93,5 +107,5 @@ export async function deleteVehicle(id: string) {
   if (error) return { error: error.message };
 
   revalidatePath('/vehicles');
-  redirect('/vehicles');
+  return { success: true };
 }

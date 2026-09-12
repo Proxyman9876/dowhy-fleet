@@ -21,7 +21,7 @@ export async function createSchedule(formData: FormData) {
   if (error) return { error: error.message };
 
   revalidatePath('/settings/schedules');
-  redirect('/settings/schedules');
+  return { success: true };
 }
 
 export async function assignScheduleToVehicle(formData: FormData) {
