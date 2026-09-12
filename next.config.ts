@@ -12,6 +12,10 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   turbopack: {},
+  // Use webpack for production builds (PWA plugin requires it)
+  experimental: {
+    turbopackBuild: false,
+  },
 };
 
 export default withPWA(nextConfig);
