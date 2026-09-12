@@ -27,7 +27,7 @@ export default async function MaintenanceRecordPage(props: {
           </div>
           <div>
             <dt className="text-gray-500">Performed By</dt>
-            <dd className="text-gray-900">{record.performer.full_name}</dd>
+            <dd className="text-gray-900">{record.performer?.full_name ?? '—'}</dd>
           </div>
           <div>
             <dt className="text-gray-500">Mileage</dt>

@@ -16,7 +16,7 @@ export function MaintenanceRecordCard({ record }: { record: MaintenanceRecordDet
               {formatDate(record.performed_at)}
             </p>
             <p className="text-xs text-gray-400">
-              {formatMileage(record.mileage_at)} &middot; {record.performer.full_name}
+              {formatMileage(record.mileage_at)}{record.performer ? ` · ${record.performer.full_name}` : ''}
             </p>
           </div>
           {record.parts_used.length > 0 && (

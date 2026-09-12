@@ -23,7 +23,7 @@ export interface VehicleScheduleDetail extends VehicleMaintenanceSchedule {
 
 /** Maintenance record with performer and parts joined */
 export interface MaintenanceRecordDetail extends MaintenanceRecord {
-  performer: Pick<Profile, 'id' | 'full_name'>;
+  performer: Pick<Profile, 'id' | 'full_name'> | null;
   vehicle: Pick<Vehicle, 'id' | 'unit_number' | 'make' | 'model' | 'year'>;
   parts_used: RecordPartDetail[];
 }

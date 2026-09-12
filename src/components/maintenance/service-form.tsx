@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Vehicle } from '@/types/database';
@@ -11,7 +12,7 @@ interface ServiceFormProps {
   vehicle: Vehicle;
   schedules: MaintenanceSchedule[];
   parts: PartWithInventory[];
-  action: (formData: FormData) => Promise<{ error?: string } | void>;
+  action: (formData: FormData) => Promise<{ error?: string; success?: boolean; redirectTo?: string } | void>;
 }
 
 interface PartUsed {
@@ -24,17 +25,34 @@ export function ServiceForm({ vehicle, schedules, parts, action }: ServiceFormPr
   const [partsUsed, setPartsUsed] = useState<PartUsed[]>([]);
   const [selectedPart, setSelectedPart] = useState('');
   const [partQty, setPartQty] = useState('1');
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const router = useRouter();
 
-  const [state, formAction, pending] = useActionState(
-    async (_prev: { error?: string } | null, formData: FormData) => {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
       formData.set('parts_used', JSON.stringify(
         partsUsed.map((p) => ({ part_id: p.part_id, quantity_used: p.quantity_used })),
       ));
       const result = await action(formData);
-      return result ?? null;
-    },
-    null,
-  );
+      if (result?.error) {
+        setError(result.error);
+      } else if (result?.redirectTo) {
+        router.push(result.redirectTo);
+      } else {
+        router.push(`/vehicles/${vehicle.id}`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setPending(false);
+    }
+  }
 
   function addPart() {
     if (!selectedPart) return;
@@ -56,9 +74,9 @@ export function ServiceForm({ vehicle, schedules, parts, action }: ServiceFormPr
   }
 
   return (
-    <form action={formAction} className="space-y-4">
-      {state?.error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{state.error}</div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
       )}
 
       <input type="hidden" name="vehicle_id" value={vehicle.id} />
